@@ -1,0 +1,116 @@
+{
+  "judge_model": "gpt-4o-mini",
+  "used_llm_api": true,
+  "total_pairs": 5,
+  "cohen_kappa": 0.8,
+  "kappa_interpretation": "almost perfect",
+  "bias_report": {
+    "total_judged": 5,
+    "position_bias_rate": 0.0,
+    "position_bias_count": 0,
+    "verbosity_bias": 0.8,
+    "verbosity_details": {
+      "a_wins_a_longer": 4,
+      "b_wins_b_longer": 0,
+      "total_decisive": 5
+    },
+    "interpretation": "Position bias thấp — judge ổn định theo thứ tự. Verbosity bias 80% > 60% — judge ưu tiên answer dài hơn, nên thêm ràng buộc súc tích vào prompt."
+  },
+  "pairs": [
+    {
+      "question": "Nhân viên được nghỉ bao nhiêu ngày phép năm?",
+      "answer_a": "Nhân viên được nghỉ 15 ngày phép năm theo chính sách v2024 hiện hành.",
+      "answer_b": "Theo quy định, nhân viên có 12 ngày phép hàng năm.",
+      "winner_pass1": "A",
+      "winner_pass2": "A",
+      "final_winner": "A",
+      "position_consistent": true,
+      "reasoning_pass1": "Answer A cung cấp thông tin chính xác và đầy đủ về số ngày phép theo chính sách hiện hành, trong khi Answer B đưa ra thông tin không chính xác.",
+      "reasoning_pass2": "Answer B cung cấp thông tin chính xác hơn về số ngày phép năm theo chính sách hiện hành, trong khi Answer A có thông tin không chính xác.",
+      "scores_pass1": {
+        "A": 1.0,
+        "B": 0.0
+      },
+      "scores_pass2": {
+        "A": 1.0,
+        "B": 0.5
+      }
+    },
+    {
+      "question": "Mức phụ cấp ăn trưa là bao nhiêu?",
+      "answer_a": "Phụ cấp ăn trưa là 50.000 VND/ngày làm việc thực tế.",
+      "answer_b": "Công ty có hỗ trợ ăn trưa cho nhân viên theo quy định hiện hành.",
+      "winner_pass1": "A",
+      "winner_pass2": "A",
+      "final_winner": "A",
+      "position_consistent": true,
+      "reasoning_pass1": "Answer A cung cấp thông tin cụ thể về mức phụ cấp ăn trưa, trong khi Answer B chỉ nêu chung chung mà không có số liệu cụ thể.",
+      "reasoning_pass2": "Answer B cung cấp thông tin cụ thể về mức phụ cấp ăn trưa, trong khi Answer A chỉ nêu rằng có hỗ trợ mà không cho biết mức cụ thể.",
+      "scores_pass1": {
+        "A": 1.0,
+        "B": 0.5
+      },
+      "scores_pass2": {
+        "A": 1.0,
+        "B": 0.4
+      }
+    },
+    {
+      "question": "Nhân viên thử việc bao lâu?",
+      "answer_a": "Thời gian thử việc tối đa 60 ngày với vị trí chuyên môn, hưởng 85% lương.",
+      "answer_b": "Thử việc thường kéo dài vài tháng tuỳ vị trí.",
+      "winner_pass1": "A",
+      "winner_pass2": "A",
+      "final_winner": "A",
+      "position_consistent": true,
+      "reasoning_pass1": "Answer A cung cấp thông tin chính xác và cụ thể về thời gian thử việc và mức lương, trong khi Answer B quá chung chung và không rõ ràng.",
+      "reasoning_pass2": "Answer B cung cấp thông tin cụ thể về thời gian thử việc và mức lương, trong khi Answer A chỉ đưa ra thông tin chung.",
+      "scores_pass1": {
+        "A": 1.0,
+        "B": 0.5
+      },
+      "scores_pass2": {
+        "A": 1.0,
+        "B": 0.5
+      }
+    },
+    {
+      "question": "Quy trình tạm ứng lương như thế nào?",
+      "answer_a": "Nhân viên nộp đơn tạm ứng cho quản lý trực tiếp, tối đa 50% lương tháng, duyệt trong 2 ngày làm việc.",
+      "answer_b": "Bạn cần liên hệ phòng Nhân sự để được hướng dẫn tạm ứng.",
+      "winner_pass1": "A",
+      "winner_pass2": "A",
+      "final_winner": "A",
+      "position_consistent": true,
+      "reasoning_pass1": "Answer A cung cấp thông tin chi tiết về quy trình tạm ứng lương, bao gồm cách thức nộp đơn, tỷ lệ tạm ứng và thời gian duyệt. Trong khi đó, Answer B chỉ hướng dẫn liên hệ mà không cung cấp thông tin cụ thể.",
+      "reasoning_pass2": "Answer B cung cấp thông tin chi tiết về quy trình tạm ứng lương, bao gồm cách thức nộp đơn, tỷ lệ tạm ứng và thời gian duyệt, trong khi Answer A chỉ hướng dẫn liên hệ với phòng Nhân sự mà không cung cấp thông tin cụ thể.",
+      "scores_pass1": {
+        "A": 1.0,
+        "B": 0.4
+      },
+      "scores_pass2": {
+        "A": 0.9,
+        "B": 0.3
+      }
+    },
+    {
+      "question": "Chính sách làm việc từ xa quy định gì?",
+      "answer_a": "Nhân viên được WFH tối đa 2 ngày/tuần, đăng ký trước với quản lý.",
+      "answer_b": "Công ty cho phép làm việc từ xa trong một số trường hợp.",
+      "winner_pass1": "A",
+      "winner_pass2": "A",
+      "final_winner": "A",
+      "position_consistent": true,
+      "reasoning_pass1": "Answer A cung cấp thông tin cụ thể về số ngày làm việc từ xa và yêu cầu đăng ký, trong khi Answer B chỉ nêu chung chung về việc cho phép làm việc từ xa.",
+      "reasoning_pass2": "Answer B cung cấp thông tin cụ thể về số ngày làm việc từ xa và yêu cầu đăng ký, trong khi Answer A chỉ nêu chung chung.",
+      "scores_pass1": {
+        "A": 1.0,
+        "B": 0.5
+      },
+      "scores_pass2": {
+        "A": 0.9,
+        "B": 0.4
+      }
+    }
+  ]
+}

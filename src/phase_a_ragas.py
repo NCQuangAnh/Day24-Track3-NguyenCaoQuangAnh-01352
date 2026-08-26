@@ -12,6 +12,9 @@ from config import TEST_SET_PATH, ANSWERS_PATH
 
 Distribution = str  # "factual" | "multi_hop" | "adversarial"
 
+# Điểm dưới ngưỡng này ở worst_metric mới tính là failure thật sự.
+FAILURE_THRESHOLD = 0.7
+
 DIAGNOSTIC_TREE = {
     "faithfulness":      ("LLM hallucinating", "Tighten system prompt, lower temperature"),
     "context_recall":    ("Missing relevant chunks", "Improve chunking or add BM25"),
@@ -90,12 +93,8 @@ def save_phase_a_report(results: list[RagasResult], clusters: dict,
         "total_questions": len(results),
         "per_distribution": per_dist,
         "failure_clusters": clusters,
-        "bottom_10": [
-            {"rank": i + 1, "question_id": r.question_id, "distribution": r.distribution,
-             "question": r.question, "avg_score": round(r.avg_score, 4),
-             "worst_metric": r.worst_metric}
-            for i, r in enumerate(sorted(results, key=lambda x: x.avg_score)[:10])
-        ],
+        # Dùng thẳng bottom_10() để report có cả diagnosis + suggested_fix
+        "bottom_10": bottom_10(results),
     }
     with open(path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
@@ -105,124 +104,137 @@ def save_phase_a_report(results: list[RagasResult], clusters: dict,
 # ─── Tasks 1-4: Sinh viên implement ──────────────────────────────────────────
 
 def group_by_distribution(test_set: list[dict]) -> dict[str, list[dict]]:
-    """Task 1: Nhóm 50 câu hỏi theo 3 distributions.
+    """Task 1: Nhom 50 cau hoi theo 3 distributions.
 
     Returns:
         {"factual": [...], "multi_hop": [...], "adversarial": [...]}
     """
-    # TODO: Implement
-    # groups = {"factual": [], "multi_hop": [], "adversarial": []}
-    # for item in test_set:
-    #     groups[item["distribution"]].append(item)
-    # return groups
-    return {"factual": [], "multi_hop": [], "adversarial": []}
+    groups: dict[str, list[dict]] = {"factual": [], "multi_hop": [], "adversarial": []}
+    for item in test_set:
+        dist = item.get("distribution", "factual")
+        groups.setdefault(dist, []).append(item)
+    return groups
 
 
 def run_ragas_50q(answers: list[dict]) -> list[RagasResult]:
-    """Task 2: Chạy RAGAS 4 metrics trên toàn bộ 50 câu hỏi.
+    """Task 2: Chay RAGAS 4 metrics tren toan bo 50 cau hoi.
 
-    Gợi ý — import từ Day 18 của bạn:
-        from src.m4_eval import evaluate_ragas
-
-    Steps:
-        1. Extract questions, answers, contexts, ground_truths từ answers list
-        2. Gọi evaluate_ragas() từ m4_eval.py
-        3. Kết hợp kết quả với distribution info từ answers list
-        4. Return list[RagasResult]
+    Goi evaluate_ragas() tu src/m4_eval.py (Day 18) roi ghep voi distribution info.
     """
-    # TODO: Implement
-    # try:
-    #     from src.m4_eval import evaluate_ragas
-    # except ImportError:
-    #     print("⚠️  Không tìm thấy src/m4_eval.py — đã copy từ Day 18 chưa?")
-    #     return []
-    #
-    # questions     = [a["question"]    for a in answers]
-    # ans_texts     = [a["answer"]      for a in answers]
-    # contexts      = [a["contexts"]    for a in answers]
-    # ground_truths = [a["ground_truth"] for a in answers]
-    #
-    # raw = evaluate_ragas(questions, ans_texts, contexts, ground_truths)
-    # per_q = raw.get("per_question", [])
-    #
-    # results = []
-    # for a, pq in zip(answers, per_q):
-    #     results.append(RagasResult(
-    #         question_id=a["id"], distribution=a["distribution"],
-    #         question=a["question"], answer=a["answer"],
-    #         contexts=a["contexts"], ground_truth=a["ground_truth"],
-    #         faithfulness=pq.faithfulness, answer_relevancy=pq.answer_relevancy,
-    #         context_precision=pq.context_precision, context_recall=pq.context_recall,
-    #     ))
-    # return results
-    return []
+    if not answers:
+        return []
+
+    try:
+        from src.m4_eval import evaluate_ragas
+    except ImportError:
+        print("Khong tim thay src/m4_eval.py - da copy tu Day 18 chua?")
+        return []
+
+    questions     = [a["question"] for a in answers]
+    ans_texts     = [a["answer"] for a in answers]
+    contexts      = [a.get("contexts", []) for a in answers]
+    ground_truths = [a.get("ground_truth", "") for a in answers]
+
+    raw = evaluate_ragas(questions, ans_texts, contexts, ground_truths)
+    per_q = raw.get("per_question", []) if isinstance(raw, dict) else list(raw)
+
+    def _get(obj, key: str) -> float:
+        value = obj.get(key, 0.0) if isinstance(obj, dict) else getattr(obj, key, 0.0)
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return 0.0
+        return 0.0 if value != value else value  # NaN -> 0.0
+
+    results: list[RagasResult] = []
+    for a, pq in zip(answers, per_q):
+        results.append(RagasResult(
+            question_id=a.get("id", len(results) + 1),
+            distribution=a.get("distribution", "factual"),
+            question=a["question"],
+            answer=a["answer"],
+            contexts=a.get("contexts", []),
+            ground_truth=a.get("ground_truth", ""),
+            faithfulness=_get(pq, "faithfulness"),
+            answer_relevancy=_get(pq, "answer_relevancy"),
+            context_precision=_get(pq, "context_precision"),
+            context_recall=_get(pq, "context_recall"),
+        ))
+    return results
 
 
 def bottom_10(results: list[RagasResult]) -> list[dict]:
-    """Task 3: Lấy 10 câu hỏi có avg_score thấp nhất.
-
-    Returns:
-        [{"rank": 1, "question_id": ..., "distribution": ...,
-          "question": ..., "avg_score": ..., "worst_metric": ...,
-          "diagnosis": ..., "suggested_fix": ...}, ...]
-    """
-    # TODO: Implement
-    # sorted_asc = sorted(results, key=lambda r: r.avg_score)
-    # bottom = sorted_asc[:10]
-    # output = []
-    # for i, r in enumerate(bottom):
-    #     diag, fix = DIAGNOSTIC_TREE[r.worst_metric]
-    #     output.append({
-    #         "rank": i + 1,
-    #         "question_id": r.question_id,
-    #         "distribution": r.distribution,
-    #         "question": r.question,
-    #         "avg_score": round(r.avg_score, 4),
-    #         "worst_metric": r.worst_metric,
-    #         "diagnosis": diag,
-    #         "suggested_fix": fix,
-    #     })
-    # return output
-    return []
+    """Task 3: Lay 10 cau hoi co avg_score thap nhat kem diagnosis + fix."""
+    output: list[dict] = []
+    for i, r in enumerate(sorted(results, key=lambda x: x.avg_score)[:10]):
+        diagnosis, fix = DIAGNOSTIC_TREE[r.worst_metric]
+        output.append({
+            "rank": i + 1,
+            "question_id": r.question_id,
+            "distribution": r.distribution,
+            "question": r.question,
+            "avg_score": round(r.avg_score, 4),
+            "worst_metric": r.worst_metric,
+            "diagnosis": diagnosis,
+            "suggested_fix": fix,
+        })
+    return output
 
 
-def cluster_analysis(results: list[RagasResult]) -> dict:
+def cluster_analysis(results: list[RagasResult], threshold: float = FAILURE_THRESHOLD) -> dict:
     """Task 4: Phân tích failure clusters theo (worst_metric × distribution).
 
-    Mục tiêu: tìm ra distribution nào hay bị failure nhất và metric nào yếu nhất.
+    Chỉ những câu thực sự fail (điểm của worst_metric < threshold) mới vào matrix —
+    nếu đếm mọi câu thì mỗi câu luôn có một worst_metric và matrix chỉ phản ánh
+    số câu của từng distribution chứ không phải chỗ hỏng.
+
+    Dominant distribution chấm theo **tỉ lệ fail** (fail / tổng câu của distribution)
+    để 10 câu adversarial không bị 20 câu factual lấn át.
 
     Returns:
-        {
-          "matrix": {
-            "faithfulness":      {"factual": 3, "multi_hop": 5, "adversarial": 2},
-            "answer_relevancy":  {...},
-            "context_precision": {...},
-            "context_recall":    {...},
-          },
-          "dominant_failure_distribution": "multi_hop",
-          "dominant_failure_metric": "context_recall",
-          "insight": "..."
-        }
+        {"matrix": {metric: {dist: count}}, "dominant_failure_distribution": str,
+         "dominant_failure_metric": str, "failure_rate_by_distribution": {...},
+         "avg_score_by_distribution": {...}, "total_failures": int, "insight": str}
     """
-    # TODO: Implement
-    # matrix = {
-    #     metric: {"factual": 0, "multi_hop": 0, "adversarial": 0}
-    #     for metric in DIAGNOSTIC_TREE
-    # }
-    # for r in results:
-    #     matrix[r.worst_metric][r.distribution] += 1
-    #
-    # # Find dominant failure
-    # dominant_dist   = max(["factual", "multi_hop", "adversarial"],
-    #                       key=lambda d: sum(matrix[m][d] for m in matrix))
-    # dominant_metric = max(matrix, key=lambda m: sum(matrix[m].values()))
-    # insight = (f"Distribution '{dominant_dist}' có nhiều failure nhất. "
-    #            f"Metric '{dominant_metric}' là điểm yếu chủ đạo. "
-    #            f"Gợi ý: {DIAGNOSTIC_TREE[dominant_metric][1]}")
-    #
-    # return {"matrix": matrix, "dominant_failure_distribution": dominant_dist,
-    #         "dominant_failure_metric": dominant_metric, "insight": insight}
-    return {}
+    dists = ["factual", "multi_hop", "adversarial"]
+    matrix = {metric: {d: 0 for d in dists} for metric in DIAGNOSTIC_TREE}
+
+    for r in results:
+        if getattr(r, r.worst_metric) < threshold and r.distribution in matrix[r.worst_metric]:
+            matrix[r.worst_metric][r.distribution] += 1
+
+    counts = {d: sum(1 for r in results if r.distribution == d) for d in dists}
+    fails = {d: sum(matrix[m][d] for m in matrix) for d in dists}
+    failure_rate = {d: round(fails[d] / counts[d], 4) for d in dists if counts[d]}
+    avg_score = {
+        d: round(sum(r.avg_score for r in results if r.distribution == d) / counts[d], 4)
+        for d in dists if counts[d]
+    }
+
+    dominant_dist = max(failure_rate, key=failure_rate.get) if failure_rate else dists[0]
+    dominant_metric = max(matrix, key=lambda m: sum(matrix[m].values()))
+    total_failures = sum(fails.values())
+
+    insight = (
+        f"{total_failures}/{len(results)} câu fail (worst_metric < {threshold}). "
+        f"Distribution '{dominant_dist}' có tỉ lệ fail cao nhất "
+        f"({fails[dominant_dist]}/{counts[dominant_dist]} = "
+        f"{failure_rate.get(dominant_dist, 0):.0%}). "
+        f"Metric '{dominant_metric}' hỏng nhiều nhất ({sum(matrix[dominant_metric].values())} câu). "
+        f"Chẩn đoán: {DIAGNOSTIC_TREE[dominant_metric][0]}. "
+        f"Fix: {DIAGNOSTIC_TREE[dominant_metric][1]}."
+    )
+
+    return {
+        "matrix": matrix,
+        "failure_threshold": threshold,
+        "total_failures": total_failures,
+        "dominant_failure_distribution": dominant_dist,
+        "dominant_failure_metric": dominant_metric,
+        "failure_rate_by_distribution": failure_rate,
+        "avg_score_by_distribution": avg_score,
+        "insight": insight,
+    }
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────

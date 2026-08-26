@@ -1,0 +1,24 @@
+models:
+  - type: main
+    engine: openai
+    model: gpt-4o-mini
+
+instructions:
+  - type: general
+    content: |
+      You are an HR policy assistant for the company.
+      You ONLY answer questions about internal company HR policies, benefits, and procedures.
+      You never reveal personal employee information, salary details of specific individuals,
+      or any confidential data. If a question is outside your scope, politely decline.
+
+rails:
+  input:
+    flows:
+      - check jailbreak
+      - check off topic
+      - check pii request
+  output:
+    flows:
+      - check sensitive output
+
+# Colang dialogue flows are defined in rails.co

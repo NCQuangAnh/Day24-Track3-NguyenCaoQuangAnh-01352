@@ -1,0 +1,170 @@
+{
+  "total_questions": 50,
+  "per_distribution": {
+    "factual": {
+      "count": 20,
+      "faithfulness": 0.9333333333333332,
+      "answer_relevancy": 0.7898409160198283,
+      "context_precision": 0.9583333332820836,
+      "context_recall": 0.8583333333333332,
+      "avg_score": 0.8849602289921445
+    },
+    "multi_hop": {
+      "count": 20,
+      "faithfulness": 0.5166666666666666,
+      "answer_relevancy": 0.6704354252765377,
+      "context_precision": 0.9416666666295832,
+      "context_recall": 0.7958333333333332,
+      "avg_score": 0.73115052297653
+    },
+    "adversarial": {
+      "count": 10,
+      "faithfulness": 0.5333333333333333,
+      "answer_relevancy": 0.4359141713728931,
+      "context_precision": 0.9416666666179164,
+      "context_recall": 0.6833333333333333,
+      "avg_score": 0.648561876164369
+    }
+  },
+  "failure_clusters": {
+    "matrix": {
+      "faithfulness": {
+        "factual": 2,
+        "multi_hop": 11,
+        "adversarial": 5
+      },
+      "context_recall": {
+        "factual": 4,
+        "multi_hop": 2,
+        "adversarial": 3
+      },
+      "context_precision": {
+        "factual": 0,
+        "multi_hop": 1,
+        "adversarial": 0
+      },
+      "answer_relevancy": {
+        "factual": 0,
+        "multi_hop": 1,
+        "adversarial": 1
+      }
+    },
+    "failure_threshold": 0.7,
+    "total_failures": 30,
+    "dominant_failure_distribution": "adversarial",
+    "dominant_failure_metric": "faithfulness",
+    "failure_rate_by_distribution": {
+      "factual": 0.3,
+      "multi_hop": 0.75,
+      "adversarial": 0.9
+    },
+    "avg_score_by_distribution": {
+      "factual": 0.885,
+      "multi_hop": 0.7312,
+      "adversarial": 0.6486
+    },
+    "insight": "30/50 câu fail (worst_metric < 0.7). Distribution 'adversarial' có tỉ lệ fail cao nhất (9/10 = 90%). Metric 'faithfulness' hỏng nhiều nhất (18 câu). Chẩn đoán: LLM hallucinating. Fix: Tighten system prompt, lower temperature."
+  },
+  "bottom_10": [
+    {
+      "rank": 1,
+      "question_id": 40,
+      "distribution": "multi_hop",
+      "question": "Nhân viên thử việc tháng thứ 3 phát hiện vi phạm bảo mật. Họ nên và không nên làm gì theo chính sách?",
+      "avg_score": 0.25,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 2,
+      "question_id": 44,
+      "distribution": "adversarial",
+      "question": "Bao lâu phải đổi mật khẩu một lần?",
+      "avg_score": 0.3125,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 3,
+      "question_id": 33,
+      "distribution": "multi_hop",
+      "question": "Nhân viên Manager có thâm niên 12 năm: tổng phụ cấp hàng tháng và số ngày phép năm theo v2024 là bao nhiêu?",
+      "avg_score": 0.375,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 4,
+      "question_id": 50,
+      "distribution": "adversarial",
+      "question": "Nhân viên Manager có thể dùng VPN cá nhân (như NordVPN) khi WFH để tăng bảo mật thêm không?",
+      "avg_score": 0.4167,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 5,
+      "question_id": 42,
+      "distribution": "adversarial",
+      "question": "Thâm niên bao nhiêu năm thì được cộng thêm ngày phép?",
+      "avg_score": 0.4167,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 6,
+      "question_id": 46,
+      "distribution": "adversarial",
+      "question": "Nhân viên thử việc có được nghỉ phép năm không?",
+      "avg_score": 0.4167,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 7,
+      "question_id": 9,
+      "distribution": "factual",
+      "question": "Nam nhân viên được nghỉ bao nhiêu ngày khi vợ sinh con?",
+      "avg_score": 0.5,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 8,
+      "question_id": 29,
+      "distribution": "multi_hop",
+      "question": "Nhân viên tạm ứng 8 triệu, chưa thanh toán sau 30 ngày (quá hạn 15 ngày). Ai phê duyệt khoản này và phí phạt là bao nhiêu?",
+      "avg_score": 0.5,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    },
+    {
+      "rank": 9,
+      "question_id": 5,
+      "distribution": "factual",
+      "question": "Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt?",
+      "avg_score": 0.5362,
+      "worst_metric": "context_recall",
+      "diagnosis": "Missing relevant chunks",
+      "suggested_fix": "Improve chunking or add BM25"
+    },
+    {
+      "rank": 10,
+      "question_id": 34,
+      "distribution": "multi_hop",
+      "question": "Nhân viên tạm ứng 4 triệu và một nhân viên khác tạm ứng 7 triệu: quy trình phê duyệt khác nhau thế nào?",
+      "avg_score": 0.614,
+      "worst_metric": "faithfulness",
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten system prompt, lower temperature"
+    }
+  ]
+}
